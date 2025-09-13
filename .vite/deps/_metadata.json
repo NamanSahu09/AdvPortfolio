@@ -1,0 +1,100 @@
+{
+  "hash": "7c5cdd52",
+  "configHash": "deb96b9e",
+  "lockfileHash": "58ce11d5",
+  "browserHash": "e6d24e06",
+  "optimized": {
+    "react": {
+      "src": "../../node_modules/react/index.js",
+      "file": "react.js",
+      "fileHash": "c4c8e434",
+      "needsInterop": true
+    },
+    "@gsap/react": {
+      "src": "../../node_modules/@gsap/react/src/index.js",
+      "file": "@gsap_react.js",
+      "fileHash": "f810f9ea",
+      "needsInterop": false
+    },
+    "gsap": {
+      "src": "../../node_modules/gsap/index.js",
+      "file": "gsap.js",
+      "fileHash": "09ff3c6e",
+      "needsInterop": false
+    },
+    "@react-three/fiber": {
+      "src": "../../node_modules/@react-three/fiber/dist/react-three-fiber.esm.js",
+      "file": "@react-three_fiber.js",
+      "fileHash": "d35b7412",
+      "needsInterop": false
+    },
+    "@react-three/drei": {
+      "src": "../../node_modules/@react-three/drei/index.js",
+      "file": "@react-three_drei.js",
+      "fileHash": "1c8821b8",
+      "needsInterop": false
+    },
+    "react-responsive": {
+      "src": "../../node_modules/react-responsive/dist/esm/index.js",
+      "file": "react-responsive.js",
+      "fileHash": "af8684bb",
+      "needsInterop": false
+    },
+    "three": {
+      "src": "../../node_modules/three/build/three.module.js",
+      "file": "three.js",
+      "fileHash": "760138c1",
+      "needsInterop": false
+    },
+    "@react-three/postprocessing": {
+      "src": "../../node_modules/@react-three/postprocessing/dist/index.js",
+      "file": "@react-three_postprocessing.js",
+      "fileHash": "c3942a72",
+      "needsInterop": false
+    },
+    "postprocessing": {
+      "src": "../../node_modules/postprocessing/build/index.js",
+      "file": "postprocessing.js",
+      "fileHash": "3bf5b309",
+      "needsInterop": false
+    },
+    "react-dom/client": {
+      "src": "../../node_modules/react-dom/client.js",
+      "file": "react-dom_client.js",
+      "fileHash": "198a5629",
+      "needsInterop": true
+    }
+  },
+  "chunks": {
+    "hls-6AL5ZCUK": {
+      "file": "hls-6AL5ZCUK.js"
+    },
+    "vision_bundle-SQYBGID6": {
+      "file": "vision_bundle-SQYBGID6.js"
+    },
+    "chunk-M5XIBDSQ": {
+      "file": "chunk-M5XIBDSQ.js"
+    },
+    "chunk-CHNFCEBE": {
+      "file": "chunk-CHNFCEBE.js"
+    },
+    "chunk-LPMOQB35": {
+      "file": "chunk-LPMOQB35.js"
+    },
+    "chunk-LROGPZ5R": {
+      "file": "chunk-LROGPZ5R.js"
+    },
+    "chunk-S3V2KXZA": {
+      "file": "chunk-S3V2KXZA.js"
+    },
+    "chunk-3NZHTT64": {
+      "file": "chunk-3NZHTT64.js"
+    },
+    "chunk-32EALFBN": {
+      "file": "chunk-32EALFBN.js"
+    },
+    "chunk-G3PMV62Z": {
+      "file": "chunk-G3PMV62Z.js"
+    }
+  }
+}
