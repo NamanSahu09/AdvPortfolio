@@ -20,7 +20,7 @@ const App = () => {
       <ExperienceSection />
       <Techstack/>
       <Testimonial/>
-      <Contact/>
+      <Contact.jsx/>
     </>
   )
 }
