@@ -130,19 +130,19 @@ const techStackIcons = [
   {
     name: "Backend Developer",
     modelPath: "/models/node-transformed.glb",
-    scale: 3,
+    scale: 0.8,
     rotation: [0, -Math.PI / 2, 0],
   },
   {
     name: "Interactive Developer",
     modelPath: "/models/three.js-transformed.glb",
-    scale: 0.03,
+    scale: 0.05,
     rotation: [0, 0, 0],
   },
   {
     name: "Project Manager",
     modelPath: "/models/git-svg-transformed.glb",
-    scale: 0.03,
+    scale: 0.05,
     rotation: [0, -Math.PI / 4, 0],
   },
 ];

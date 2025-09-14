@@ -6,7 +6,6 @@ import LogoSection from './components/LogoSection.jsx'
 import FeatureCards from './sections/FeatureCards.jsx'
 import ExperienceSection from './sections/ExperienceSection.jsx'
 import Techstack from './sections/Techstack.jsx'
-import { ScrollTrigger } from "gsap/ScrollTrigger";
 
 const App = () => {
   return (

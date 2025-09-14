@@ -7,7 +7,7 @@ import FeatureCards from './sections/FeatureCards.jsx'
 import ExperienceSection from './sections/ExperienceSection.jsx'
 import Techstack from './sections/Techstack.jsx'
 import { ScrollTrigger } from "gsap/ScrollTrigger";
-
+import gsap from "gsap";
 const App = () => {
   return (
     <>

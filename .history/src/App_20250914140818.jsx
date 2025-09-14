@@ -5,8 +5,6 @@ import NavBar from './components/NavBar.jsx'
 import LogoSection from './components/LogoSection.jsx'
 import FeatureCards from './sections/FeatureCards.jsx'
 import ExperienceSection from './sections/ExperienceSection.jsx'
-import Techstack from './sections/Techstack.jsx'
-import { ScrollTrigger } from "gsap/ScrollTrigger";
 
 const App = () => {
   return (
@@ -17,7 +15,7 @@ const App = () => {
       <LogoSection />
       <FeatureCards />
       <ExperienceSection />
-      <Techstack/>
+      <Tecchstack/>
     </>
   )
 }
