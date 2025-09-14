@@ -7,7 +7,6 @@ import FeatureCards from './sections/FeatureCards.jsx'
 import ExperienceSection from './sections/ExperienceSection.jsx'
 import Techstack from './sections/Techstack.jsx'
 import { ScrollTrigger } from "gsap/ScrollTrigger";
-import Testimonial from './sections/Testimonial.jsx'
 
 const App = () => {
   return (
@@ -19,7 +18,7 @@ const App = () => {
       <FeatureCards />
       <ExperienceSection />
       <Techstack/>
-      <Testimonial/>
+      <
     </>
   )
 }

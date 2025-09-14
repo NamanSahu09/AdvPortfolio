@@ -23,7 +23,7 @@ const GlowCard = ({ card, children }) => {
     <div
       ref={cardRef}
       onMouseMove={handleMouseMove}
-      className="card card-border timeline-card rounded-xl p-10 mb-5 break-inside-avoid-column relative overflow-hidden"
+      className="card card-border timeline-card rounded-xl p-10 relative overflow-hidden"
     >
       {/* Glow effect div */}
       <div className="glow absolute inset-0 pointer-events-none" />

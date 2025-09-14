@@ -242,10 +242,10 @@ const testimonials = [
     imgPath: "/images/client4.png",
   },
   {
-    name: "John Doe",
-    mentions: "@john_doe",
+    name: "Albert Flores",
+    mentions: "@albertflores",
     review:
-      "Naman was a pleasure to work with. He understood our requirements perfectly and delivered a website that exceeded our expectations. His skills in both frontend and backend dev are top-notch.",
+      "Adrian was a pleasure to work with. He understood our requirements perfectly and delivered a website that exceeded our expectations. His skills in both frontend and backend dev are top-notch.",
     imgPath: "/images/client6.png",
   },
 ];

@@ -210,7 +210,7 @@ const testimonials = [
     name: "Udit Kumar Patel",
     mentions: "@rrt_ashish_rajpoot",
     review:
-      "I can’t say enough good things about Naman. He was able to take our complex project requirements and turn them into a seamless, functional website. His problem-solving abilities are outstanding.",
+      "I can’t say enough good things about Adrian. He was able to take our complex project requirements and turn them into a seamless, functional website. His problem-solving abilities are outstanding.",
     imgPath: "/images/client1.png",
   },
   {
@@ -235,17 +235,17 @@ const testimonials = [
     imgPath: "/images/client5.png",
   },
   {
-    name: "Sam Behera",
-    mentions: "@sam_behera",
+    name: "Floyd Miles",
+    mentions: "@floydmiles",
     review:
-      "Naman's expertise in web development is truly impressive. He delivered a robust and scalable solution for our e-commerce site, and our online sales have significantly increased since the launch. He’s a true professional!",
+      "Adrian’s expertise in web development is truly impressive. He delivered a robust and scalable solution for our e-commerce site, and our online sales have significantly increased since the launch. He’s a true professional!",
     imgPath: "/images/client4.png",
   },
   {
-    name: "John Doe",
-    mentions: "@john_doe",
+    name: "Albert Flores",
+    mentions: "@albertflores",
     review:
-      "Naman was a pleasure to work with. He understood our requirements perfectly and delivered a website that exceeded our expectations. His skills in both frontend and backend dev are top-notch.",
+      "Adrian was a pleasure to work with. He understood our requirements perfectly and delivered a website that exceeded our expectations. His skills in both frontend and backend dev are top-notch.",
     imgPath: "/images/client6.png",
   },
 ];
