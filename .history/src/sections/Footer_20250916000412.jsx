@@ -1,0 +1,33 @@
+import React from 'react'
+
+const Footer = () => {
+  return (
+    <footer className='footer'>
+      <div className='footer-container '>
+        <div className='flex flex-col  justify-center'>
+        <a href='/'>
+        Visit my blog.
+        </a>
+        </div>
+        <div className='socials'>
+           {socialImgs.map((img)=> 
+            <a className='icon' target="_blank" href='img.url' key={img.url}>
+              <img src={img.imgPath}>
+              </img>
+
+            </a>
+          )}
+        </div>
+        <div className="flex flex-col justify-center"> 
+            <p className='text-center md:text-end'> 
+                {new Date().getFullYear()} © All Rights Reserved.
+            </p>
+        </div>
+      </div>
+
+
+    </footer>>
+  )
+}
+
+export default Footer
