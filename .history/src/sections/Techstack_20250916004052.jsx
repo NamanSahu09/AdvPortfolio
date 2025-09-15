@@ -1,28 +1,33 @@
 import React from 'react'
 import TitleHeader from '../components/TitleHeader'
 import { techStackIcons } from '../constants'
-import TechIcon from '../../public/models/TechLogos/TechIcon'// agar import missing hai to add karna
+import TechIcon from '../../public/models/TechLogos/TechIcon' // agar import missing hai to add karna
 import { useGSAP } from '@gsap/react'
 import { gsap } from 'gsap'
+import { ScrollTrigger } from 'gsap/ScrollTrigger'
+
+gsap.registerPlugin(ScrollTrigger)
+
 const Techstack = () => {
 
   useGSAP(() => {
     gsap.fromTo(
-      '.tech-card' , { y: 50, opacity: 0}, {
-        y:0,
+      '.tech-card',
+      { y: 50, opacity: 0 },
+      {
+        y: 0,
         opacity: 1,
         duration: 1,
         ease: 'power2.inOut',
         stagger: 0.2,
         scrollTrigger: {
           trigger: "#skills",
-          start: 'top-center'
+          start: 'top center',
+          toggleActions: "play none none reverse" // optional (scroll back pe reverse hoga)
         }
       }
     )
   })
-
-
 
   return (
     <div id="skills" className="flex-center section-padding">
@@ -44,8 +49,8 @@ const Techstack = () => {
                   <TechIcon model={icon} />
                 </div>
                 <div className='padding-x w-full'>
-                    <p>{icon.name}</p>
-                  </div>
+                  <p>{icon.name}</p>
+                </div>
               </div>
             </div>
           ))}

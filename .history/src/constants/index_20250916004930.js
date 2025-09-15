@@ -268,7 +268,7 @@ const socialImgs = [
   },
   {
     name: "linkedin",
-    url: "https://www.linkedin.com/in/namanswastiksahu/",
+    url: "https://www.linkedin.com/",
     imgPath: "/images/linkedin.png",
   },
 ];

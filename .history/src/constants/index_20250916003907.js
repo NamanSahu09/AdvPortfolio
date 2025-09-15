@@ -109,7 +109,7 @@ const techStackImgs = [
     imgPath: "/images/logos/three.png",
   },
   {
-    name: "DevOps",
+    name: "",
     imgPath: "/images/logos/git.svg",
   },
 ];
@@ -140,7 +140,7 @@ const techStackIcons = [
     rotation: [0, 0, 0],
   },
   {
-    name: "DevOps",
+    name: "Project Manager",
     modelPath: "/models/git-svg-transformed.glb",
     scale: 0.03,
     rotation: [0, -Math.PI / 4, 0],
@@ -253,22 +253,22 @@ const testimonials = [
 const socialImgs = [
   {
     name: "insta",
-    url: "https://www.instagram.com/ig_nss/",
+    url: "https://www.instagram.com/",
     imgPath: "/images/insta.png",
   },
   {
     name: "fb",
-    url: "https://www.facebook.com/namanswastik.sahu.3/",
+    url: "https://www.facebook.com/",
     imgPath: "/images/fb.png",
   },
   {
     name: "x",
-    url: "https://x.com/Charlie60380",
+    url: "https://www.x.com/",
     imgPath: "/images/x.png",
   },
   {
     name: "linkedin",
-    url: "https://www.linkedin.com/in/namanswastiksahu/",
+    url: "https://www.linkedin.com/",
     imgPath: "/images/linkedin.png",
   },
 ];

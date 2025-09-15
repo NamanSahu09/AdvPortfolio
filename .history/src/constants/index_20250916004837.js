@@ -263,12 +263,12 @@ const socialImgs = [
   },
   {
     name: "x",
-    url: "https://x.com/Charlie60380",
+    url: "https://www.x.com/",
     imgPath: "/images/x.png",
   },
   {
     name: "linkedin",
-    url: "https://www.linkedin.com/in/namanswastiksahu/",
+    url: "https://www.linkedin.com/",
     imgPath: "/images/linkedin.png",
   },
 ];

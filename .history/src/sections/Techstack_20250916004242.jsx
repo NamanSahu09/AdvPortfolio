@@ -16,7 +16,7 @@ const Techstack = () => {
         stagger: 0.2,
         scrollTrigger: {
           trigger: "#skills",
-          start: 'top-center'
+          start: 'topcenter'
         }
       }
     )
