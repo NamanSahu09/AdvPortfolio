@@ -36,7 +36,7 @@ This project is my personal portfolio where I showcase my skills, projects, and 
 
 | Hero Section | Skills Section | Contact Page |
 |--------------|----------------|--------------|
-| ![Hero Screenshot](./Users/namanswastiksahu/Desktop/DigitalPortfolio/Hero1.png) | ![Skills Screenshot](/Users/namanswastiksahu/Desktop/DigitalPortfolio/skills.png) | ![Contact Screenshot](./screenshots/ContactMe.png) |
+| ![Hero Screenshot](./Users/namanswastiksahu/Desktop/Hero1.png) | ![Skills Screenshot](./Users/namanswastiksahu/Desktop/Skills.png) | ![Contact Screenshot](./Users/namanswastiksahu/DesktopContactMe.png) |
 
 
 
