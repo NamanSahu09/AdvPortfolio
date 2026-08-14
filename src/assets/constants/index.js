@@ -263,16 +263,39 @@ const socialImgs = [
   },
 ];
 
+const base = import.meta.env.BASE_URL || '/';
+const resolvePath = (path) => {
+  if (!path) return path;
+  if (path.startsWith('http://') || path.startsWith('https://')) return path;
+  const cleanBase = base.endsWith('/') ? base : `${base}/`;
+  const cleanPath = path.startsWith('/') ? path.slice(1) : path;
+  return `${cleanBase}${cleanPath}`;
+};
+
+const mappedWords = words.map(w => ({ ...w, imgPath: resolvePath(w.imgPath) }));
+const mappedAbilities = abilities.map(a => ({ ...a, imgPath: resolvePath(a.imgPath) }));
+const mappedLogoIconsList = logoIconsList.map(l => ({ ...l, imgPath: resolvePath(l.imgPath) }));
+const mappedExpCards = expCards.map(e => ({
+  ...e,
+  imgPath: resolvePath(e.imgPath),
+  logoPath: resolvePath(e.logoPath)
+}));
+const mappedExpLogos = expLogos.map(e => ({ ...e, imgPath: resolvePath(e.imgPath) }));
+const mappedTestimonials = testimonials.map(t => ({ ...t, imgPath: resolvePath(t.imgPath) }));
+const mappedSocialImgs = socialImgs.map(s => ({ ...s, imgPath: resolvePath(s.imgPath) }));
+const mappedTechStackIcons = techStackIcons.map(t => ({ ...t, modelPath: resolvePath(t.modelPath) }));
+const mappedTechStackImgs = techStackImgs.map(t => ({ ...t, imgPath: resolvePath(t.imgPath) }));
+
 export {
-  words,
-  abilities,
-  logoIconsList,
+  mappedWords as words,
+  mappedAbilities as abilities,
+  mappedLogoIconsList as logoIconsList,
   counterItems,
-  expCards,
-  expLogos,
-  testimonials,
-  socialImgs,
-  techStackIcons,
-  techStackImgs,
+  mappedExpCards as expCards,
+  mappedExpLogos as expLogos,
+  mappedTestimonials as testimonials,
+  mappedSocialImgs as socialImgs,
+  mappedTechStackIcons as techStackIcons,
+  mappedTechStackImgs as techStackImgs,
   navLinks,
 };
