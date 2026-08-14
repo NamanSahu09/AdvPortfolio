@@ -45,7 +45,7 @@ const ShowcaseSection = () => {
           {/* Left Side */}
           <div className="first-project-wrapper" ref={project1Ref}>
             <div className="image-wrapper">
-              <img src="/images/project1.png" alt="KingHills" />
+              <img src={`${import.meta.env.BASE_URL}images/project1.png`} alt="KingHills" />
             </div>
 
             <div className="text-content">
@@ -63,14 +63,14 @@ const ShowcaseSection = () => {
           <div className="project-list-wrapper overflow-hidden">
             <div className="project" ref={project2Ref}>
               <div className="image-wrapper bg-[#ffefdb]">
-                <img src="/images/project2.png" alt="Mentor Connect System" />
+                <img src={`${import.meta.env.BASE_URL}images/project2.png`} alt="Mentor Connect System" />
               </div>
               <h2>MentorConnect</h2>
             </div>
 
             <div className="project" ref={project3Ref}>
               <div className="image-wrapper bg-[#ffe7eb]">
-                <img src="/images/project3.png" alt="EDTech Website" />
+                <img src={`${import.meta.env.BASE_URL}images/project3.png`} alt="EDTech Website" />
               </div>
               <h2>Vidyapeeth - A Startup Showcase App </h2>
             </div>
