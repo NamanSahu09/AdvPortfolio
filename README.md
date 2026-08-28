@@ -67,3 +67,5 @@ npm run build
 ## 🔄 DevOps Automation
 
 This project is being used to demonstrate an automated GitHub workflow using GitHub Actions, Jira, Google Calendar, and Slack.
+
+> 🚀 Automated DevOps workflow demonstration.
