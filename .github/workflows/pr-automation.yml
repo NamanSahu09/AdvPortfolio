@@ -2,7 +2,7 @@ name: PR Automation
 
 on:
   pull_request:
-    types: [opened]
+    types: [opened, synchronize]
 
 jobs:
   pr-info:
@@ -11,7 +11,7 @@ jobs:
     steps:
       - name: Show PR information
         run: |
-          echo "🚀 Pull Request detected!"
+          echo "Pull Request detected!"
           echo "PR Number: ${{ github.event.pull_request.number }}"
           echo "PR Title: ${{ github.event.pull_request.title }}"
           echo "Author: ${{ github.event.pull_request.user.login }}"
