@@ -123,7 +123,7 @@ jobs:
 
   calendar:
     needs: jira
-    if: github.event.action == 'synchronize'
+    if: false
     runs-on: ubuntu-latest
 
     steps:
@@ -171,3 +171,35 @@ jobs:
 
           echo "Calendar response: $RESPONSE"
           echo "Google Calendar event created successfully."
+
+  slack:
+    needs: jira
+    if: github.event.action == 'synchronize'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Send Slack notification
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          PR_TITLE: ${{ github.event.pull_request.title }}
+          PR_URL: ${{ github.event.pull_request.html_url }}
+          PR_AUTHOR: ${{ github.event.pull_request.user.login }}
+          REPOSITORY: ${{ github.repository }}
+          JIRA_URL: ${{ needs.jira.outputs.issue_url }}
+        run: |
+          set -euo pipefail
+
+          PAYLOAD=$(jq -n \
+            --arg text "🚀 GitHub PR Automation\n\nRepository: ${REPOSITORY}\nPR #${PR_NUMBER}: ${PR_TITLE}\nAuthor: ${PR_AUTHOR}\nGitHub: ${PR_URL}\nJira: ${JIRA_URL}" \
+            '{text: $text}')
+
+          echo "Sending notification to Slack..."
+
+          curl -fsS \
+            -X POST \
+            -H "Content-Type: application/json" \
+            --data "$PAYLOAD" \
+            "$SLACK_WEBHOOK_URL"
+
+          echo "Slack notification sent successfully."
