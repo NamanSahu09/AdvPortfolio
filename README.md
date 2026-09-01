@@ -74,4 +74,6 @@ This project is being used to demonstrate an automated GitHub workflow using Git
 
 ### 🤖 DevOps Automation Demo
 
-This repository demonstrates automated PR workflows using GitHub Actions.
+This repository demonstrates automated PR workflows using GitHub Actions, Jira, Google Calendar, and Slack.
+
+> Test trigger: Jira automation is connected to this pull request.
