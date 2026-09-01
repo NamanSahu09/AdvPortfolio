@@ -25,7 +25,6 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       issue_key: ${{ steps.jira_task.outputs.issue_key }}
-      issue_url: ${{ steps.jira_task.outputs.issue_url }}
 
     steps:
       - name: Calculate 5-day deadline
@@ -155,10 +154,8 @@ jobs:
             echo "Updated Jira task: ${ISSUE_KEY}"
           fi
 
-          ISSUE_URL="${JIRA_BASE_URL}/browse/${ISSUE_KEY}"
           echo "issue_key=${ISSUE_KEY}" >> "$GITHUB_OUTPUT"
-          echo "issue_url=${ISSUE_URL}" >> "$GITHUB_OUTPUT"
-          echo "Jira task: ${ISSUE_URL}"
+          echo "Jira task key: ${ISSUE_KEY}"
 
   calendar:
     needs: jira
@@ -183,9 +180,12 @@ jobs:
           PR_URL: ${{ github.event.pull_request.html_url }}
           REPOSITORY: ${{ github.repository }}
           DUE_AT: ${{ steps.deadline.outputs.due_at }}
-          JIRA_URL: ${{ needs.jira.outputs.issue_url }}
+          JIRA_BASE_URL: ${{ secrets.JIRA_BASE_URL }}
+          JIRA_KEY: ${{ needs.jira.outputs.issue_key }}
         run: |
           set -euo pipefail
+
+          JIRA_URL="${JIRA_BASE_URL}/browse/${JIRA_KEY}"
 
           PAYLOAD=$(jq -n \
             --arg title "PR #${PR_NUMBER} – ${PR_TITLE}" \
@@ -225,10 +225,12 @@ jobs:
           PR_URL: ${{ github.event.pull_request.html_url }}
           PR_AUTHOR: ${{ github.event.pull_request.user.login }}
           REPOSITORY: ${{ github.repository }}
+          JIRA_BASE_URL: ${{ secrets.JIRA_BASE_URL }}
           JIRA_KEY: ${{ needs.jira.outputs.issue_key }}
-          JIRA_URL: ${{ needs.jira.outputs.issue_url }}
         run: |
           set -euo pipefail
+
+          JIRA_URL="${JIRA_BASE_URL}/browse/${JIRA_KEY}"
 
           PAYLOAD=$(jq -n \
             --arg text "🚀 PR AUTOMATION UPDATE\n\n📦 Repository: ${REPOSITORY}\n🔀 Pull Request: #${PR_NUMBER} — ${PR_TITLE}\n👤 Author: ${PR_AUTHOR}\n\n✅ Jira Task: ${JIRA_KEY}\n🔗 Jira: ${JIRA_URL}\n\n📌 Status: PR updated → Jira task processed → Slack notified" \
