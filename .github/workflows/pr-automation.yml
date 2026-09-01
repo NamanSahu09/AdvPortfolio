@@ -49,23 +49,46 @@ jobs:
           PR_AUTHOR: ${{ github.event.pull_request.user.login }}
           REPOSITORY: ${{ github.repository }}
           DUE_DATE: ${{ steps.deadline.outputs.due_date }}
+          PR_ACTION: ${{ github.event.action }}
         run: |
           set -euo pipefail
 
           LABEL="github-pr-${PR_NUMBER}"
+          ISSUE_KEY=""
 
           echo "Checking Jira for an existing task..."
-          SEARCH=$(curl -fsS --get \
-            -u "${JIRA_EMAIL}:${JIRA_API_TOKEN}" \
-            -H "Accept: application/json" \
-            --data-urlencode "jql=project = SCRUM AND labels = \"${LABEL}\"" \
-            --data-urlencode "maxResults=1" \
-            "${JIRA_BASE_URL}/rest/api/3/search/jql")
 
-          ISSUE_KEY=$(echo "$SEARCH" | jq -r '.issues[0].key // empty')
+          # Jira search can take a few seconds to index a newly-created issue.
+          # Retry before deciding that the task does not exist.
+          for attempt in 1 2 3; do
+            SEARCH=$(curl -fsS --get \
+              -u "${JIRA_EMAIL}:${JIRA_API_TOKEN}" \
+              -H "Accept: application/json" \
+              --data-urlencode "jql=project = SCRUM AND labels = \"${LABEL}\" ORDER BY created DESC" \
+              --data-urlencode "maxResults=1" \
+              --data-urlencode "fields=key" \
+              "${JIRA_BASE_URL}/rest/api/3/search/jql")
+
+            ISSUE_KEY=$(echo "$SEARCH" | jq -r '.issues[0].key // empty')
+
+            if [ -n "$ISSUE_KEY" ]; then
+              break
+            fi
+
+            if [ "$attempt" -lt 3 ]; then
+              echo "No Jira task found yet. Waiting for Jira indexing (attempt ${attempt}/3)..."
+              sleep 5
+            fi
+          done
 
           if [ -z "$ISSUE_KEY" ]; then
-            echo "No Jira task found. Creating one..."
+            if [ "$PR_ACTION" = "synchronize" ]; then
+              echo "ERROR: No existing Jira task found for ${LABEL}."
+              echo "Refusing to create a duplicate task for an existing PR."
+              exit 1
+            fi
+
+            echo "No Jira task found for a newly opened PR. Creating one..."
 
             PAYLOAD=$(jq -n \
               --arg summary "$PR_TITLE" \
