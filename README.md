@@ -63,3 +63,5 @@ npm run build
 
 Testing GitHub → Jira → Google Calendar automation
 test: trigger jira automation
+
+Slack integration test: GitHub → Jira → Slack
