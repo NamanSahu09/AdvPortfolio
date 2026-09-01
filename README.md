@@ -65,3 +65,5 @@ Testing GitHub → Jira → Google Calendar automation
 test: trigger jira automation
 
 Slack integration test: GitHub → Jira → Slack
+
+Manual test: GitHub → Jira → Slack
