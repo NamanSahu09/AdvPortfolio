@@ -4,6 +4,10 @@ on:
   pull_request:
     types: [opened, synchronize]
 
+permissions:
+  contents: read
+  pull-requests: read
+
 jobs:
   pr-info:
     runs-on: ubuntu-latest
@@ -16,3 +20,96 @@ jobs:
           echo "PR Title: ${{ github.event.pull_request.title }}"
           echo "Author: ${{ github.event.pull_request.user.login }}"
           echo "Repository: ${{ github.repository }}"
+
+  jira:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Calculate 5-day deadline
+        id: deadline
+        env:
+          PR_CREATED_AT: ${{ github.event.pull_request.created_at }}
+        run: |
+          DUE_DATE=$(date -u -d "${PR_CREATED_AT} + 5 days" '+%Y-%m-%d')
+          echo "due_date=${DUE_DATE}" >> "$GITHUB_OUTPUT"
+          echo "Jira deadline: ${DUE_DATE}"
+
+      - name: Create or update Jira task
+        env:
+          JIRA_BASE_URL: ${{ secrets.JIRA_BASE_URL }}
+          JIRA_EMAIL: ${{ secrets.JIRA_EMAIL }}
+          JIRA_API_TOKEN: ${{ secrets.JIRA_API_TOKEN }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          PR_TITLE: ${{ github.event.pull_request.title }}
+          PR_URL: ${{ github.event.pull_request.html_url }}
+          PR_AUTHOR: ${{ github.event.pull_request.user.login }}
+          REPOSITORY: ${{ github.repository }}
+          DUE_DATE: ${{ steps.deadline.outputs.due_date }}
+        run: |
+          set -euo pipefail
+
+          LABEL="github-pr-${PR_NUMBER}"
+
+          echo "Checking Jira for an existing task..."
+          SEARCH=$(curl -fsS --get \
+            -u "${JIRA_EMAIL}:${JIRA_API_TOKEN}" \
+            -H "Accept: application/json" \
+            --data-urlencode "jql=project = SCRUM AND labels = \"${LABEL}\"" \
+            --data-urlencode "maxResults=1" \
+            "${JIRA_BASE_URL}/rest/api/3/search/jql")
+
+          ISSUE_KEY=$(echo "$SEARCH" | jq -r '.issues[0].key // empty')
+
+          if [ -z "$ISSUE_KEY" ]; then
+            echo "No Jira task found. Creating one..."
+
+            PAYLOAD=$(jq -n \
+              --arg summary "$PR_TITLE" \
+              --arg description "GitHub PR #${PR_NUMBER}: ${PR_TITLE}\nRepository: ${REPOSITORY}\nAuthor: ${PR_AUTHOR}\nPR URL: ${PR_URL}" \
+              --arg due "$DUE_DATE" \
+              --arg label "$LABEL" \
+              '{
+                fields: {
+                  project: {key: "SCRUM"},
+                  issuetype: {name: "Task"},
+                  summary: $summary,
+                  description: {
+                    type: "doc",
+                    version: 1,
+                    content: [{
+                      type: "paragraph",
+                      content: [{type: "text", text: $description}]
+                    }]
+                  },
+                  duedate: $due,
+                  labels: [$label]
+                }
+              }')
+
+            RESPONSE=$(curl -fsS \
+              -u "${JIRA_EMAIL}:${JIRA_API_TOKEN}" \
+              -H "Accept: application/json" \
+              -H "Content-Type: application/json" \
+              -X POST \
+              "${JIRA_BASE_URL}/rest/api/3/issue" \
+              --data "$PAYLOAD")
+
+            ISSUE_KEY=$(echo "$RESPONSE" | jq -r '.key')
+            echo "Created Jira task: ${ISSUE_KEY}"
+          else
+            echo "Jira task ${ISSUE_KEY} already exists. Updating deadline..."
+
+            PAYLOAD=$(jq -n --arg due "$DUE_DATE" '{fields: {duedate: $due}}')
+
+            curl -fsS \
+              -u "${JIRA_EMAIL}:${JIRA_API_TOKEN}" \
+              -H "Accept: application/json" \
+              -H "Content-Type: application/json" \
+              -X PUT \
+              "${JIRA_BASE_URL}/rest/api/3/issue/${ISSUE_KEY}" \
+              --data "$PAYLOAD" > /dev/null
+
+            echo "Updated Jira task: ${ISSUE_KEY}"
+          fi
+
+          echo "Jira task: ${JIRA_BASE_URL}/browse/${ISSUE_KEY}"
