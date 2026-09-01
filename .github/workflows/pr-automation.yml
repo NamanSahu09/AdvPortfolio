@@ -48,6 +48,7 @@ jobs:
           PR_URL: ${{ github.event.pull_request.html_url }}
           PR_AUTHOR: ${{ github.event.pull_request.user.login }}
           REPOSITORY: ${{ github.repository }}
+          PR_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
           DUE_DATE: ${{ steps.deadline.outputs.due_date }}
           PR_ACTION: ${{ github.event.action }}
         run: |
@@ -92,7 +93,7 @@ jobs:
 
             PAYLOAD=$(jq -n \
               --arg summary "$PR_TITLE" \
-              --arg description "GitHub PR #${PR_NUMBER}: ${PR_TITLE}\nRepository: ${REPOSITORY}\nAuthor: ${PR_AUTHOR}\nPR URL: ${PR_URL}" \
+              --arg description "GitHub PR #${PR_NUMBER}: ${PR_TITLE}\nRepository: ${REPOSITORY}\nAuthor: ${PR_AUTHOR}\nPR URL: ${PR_URL}\nLatest commit: ${PR_HEAD_SHA}" \
               --arg due "$DUE_DATE" \
               --arg label "$LABEL" \
               '{
@@ -124,9 +125,24 @@ jobs:
             ISSUE_KEY=$(echo "$RESPONSE" | jq -r '.key')
             echo "Created Jira task: ${ISSUE_KEY}"
           else
-            echo "Jira task ${ISSUE_KEY} already exists. Updating deadline..."
+            echo "Jira task ${ISSUE_KEY} already exists. Updating Jira task details..."
 
-            PAYLOAD=$(jq -n --arg due "$DUE_DATE" '{fields: {duedate: $due}}')
+            PAYLOAD=$(jq -n \
+              --arg summary "$PR_TITLE" \
+              --arg description "GitHub PR #${PR_NUMBER}: ${PR_TITLE}\nRepository: ${REPOSITORY}\nAuthor: ${PR_AUTHOR}\nPR URL: ${PR_URL}\nLatest commit: ${PR_HEAD_SHA}" \
+              --arg due "$DUE_DATE" \
+              '{fields: {
+                summary: $summary,
+                description: {
+                  type: "doc",
+                  version: 1,
+                  content: [{
+                    type: "paragraph",
+                    content: [{type: "text", text: $description}]
+                  }]
+                },
+                duedate: $due
+              }}')
 
             curl -fsS \
               -u "${JIRA_EMAIL}:${JIRA_API_TOKEN}" \
