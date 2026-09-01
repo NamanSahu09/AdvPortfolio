@@ -23,6 +23,9 @@ jobs:
 
   jira:
     runs-on: ubuntu-latest
+    outputs:
+      issue_key: ${{ steps.jira-task.outputs.issue_key }}
+      issue_url: ${{ steps.jira-task.outputs.issue_url }}
 
     steps:
       - name: Calculate 5-day deadline
@@ -35,6 +38,7 @@ jobs:
           echo "Jira deadline: ${DUE_DATE}"
 
       - name: Create or update Jira task
+        id: jira-task
         env:
           JIRA_BASE_URL: ${{ secrets.JIRA_BASE_URL }}
           JIRA_EMAIL: ${{ secrets.JIRA_EMAIL }}
@@ -112,4 +116,58 @@ jobs:
             echo "Updated Jira task: ${ISSUE_KEY}"
           fi
 
-          echo "Jira task: ${JIRA_BASE_URL}/browse/${ISSUE_KEY}"
+          ISSUE_URL="${JIRA_BASE_URL}/browse/${ISSUE_KEY}"
+          echo "issue_key=${ISSUE_KEY}" >> "$GITHUB_OUTPUT"
+          echo "issue_url=${ISSUE_URL}" >> "$GITHUB_OUTPUT"
+          echo "Jira task: ${ISSUE_URL}"
+
+  calendar:
+    needs: jira
+    if: github.event.action == 'opened'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Calculate 5-day calendar deadline
+        id: deadline
+        env:
+          PR_CREATED_AT: ${{ github.event.pull_request.created_at }}
+        run: |
+          DUE_AT=$(date -u -d "${PR_CREATED_AT} + 5 days" '+%Y-%m-%dT%H:%M:%SZ')
+          echo "due_at=${DUE_AT}" >> "$GITHUB_OUTPUT"
+          echo "Calendar deadline: ${DUE_AT}"
+
+      - name: Create Google Calendar event
+        env:
+          GOOGLE_CALENDAR_WEBHOOK_URL: ${{ secrets.GOOGLE_CALENDAR_WEBHOOK_URL }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          PR_TITLE: ${{ github.event.pull_request.title }}
+          PR_URL: ${{ github.event.pull_request.html_url }}
+          REPOSITORY: ${{ github.repository }}
+          DUE_AT: ${{ steps.deadline.outputs.due_at }}
+          JIRA_URL: ${{ needs.jira.outputs.issue_url }}
+        run: |
+          set -euo pipefail
+
+          PAYLOAD=$(jq -n \
+            --arg title "PR #${PR_NUMBER} – ${PR_TITLE}" \
+            --arg deadline "$DUE_AT" \
+            --arg pr_url "$PR_URL" \
+            --arg jira_url "$JIRA_URL" \
+            --arg repository "$REPOSITORY" \
+            '{
+              title: $title,
+              deadline: $deadline,
+              pr_url: $pr_url,
+              jira_url: $jira_url,
+              repository: $repository
+            }')
+
+          echo "Creating Google Calendar event..."
+          RESPONSE=$(curl -fsS \
+            -X POST \
+            -H "Content-Type: application/json" \
+            --data "$PAYLOAD" \
+            "$GOOGLE_CALENDAR_WEBHOOK_URL")
+
+          echo "Calendar response: $RESPONSE"
+          echo "Google Calendar event created successfully."
