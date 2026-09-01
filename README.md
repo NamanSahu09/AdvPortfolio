@@ -59,3 +59,6 @@ npm run dev
 
 # Build for production
 npm run build
+
+
+Testing GitHub → Jira → Google Calendar automation
