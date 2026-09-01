@@ -35,6 +35,7 @@ jobs:
           echo "Jira deadline: ${DUE_DATE}"
 
       - name: Create or update Jira task
+        id: jira_task
         env:
           JIRA_BASE_URL: ${{ secrets.JIRA_BASE_URL }}
           JIRA_EMAIL: ${{ secrets.JIRA_EMAIL }}
@@ -113,3 +114,43 @@ jobs:
           fi
 
           echo "Jira task: ${JIRA_BASE_URL}/browse/${ISSUE_KEY}"
+          echo "issue_key=${ISSUE_KEY}" >> "$GITHUB_OUTPUT"
+
+      - name: Create Google Calendar deadline
+        if: github.event.action == 'opened'
+        env:
+          GOOGLE_CALENDAR_WEBHOOK_URL: ${{ secrets.GOOGLE_CALENDAR_WEBHOOK_URL }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          PR_TITLE: ${{ github.event.pull_request.title }}
+          PR_URL: ${{ github.event.pull_request.html_url }}
+          REPOSITORY: ${{ github.repository }}
+          PR_CREATED_AT: ${{ github.event.pull_request.created_at }}
+          JIRA_ISSUE_KEY: ${{ steps.jira_task.outputs.issue_key }}
+          JIRA_BASE_URL: ${{ secrets.JIRA_BASE_URL }}
+        run: |
+          set -euo pipefail
+
+          DEADLINE=$(date -u -d "${PR_CREATED_AT} + 5 days" '+%Y-%m-%dT%H:%M:%SZ')
+
+          PAYLOAD=$(jq -n \
+            --arg title "PR #${PR_NUMBER} – ${PR_TITLE}" \
+            --arg deadline "$DEADLINE" \
+            --arg pr_url "$PR_URL" \
+            --arg repository "$REPOSITORY" \
+            --arg jira_url "${JIRA_BASE_URL}/browse/${JIRA_ISSUE_KEY}" \
+            '{
+              title: $title,
+              deadline: $deadline,
+              pr_url: $pr_url,
+              repository: $repository,
+              jira_url: $jira_url
+            }')
+
+          echo "Creating Google Calendar deadline: ${DEADLINE}"
+          curl -fsS \
+            -H "Content-Type: application/json" \
+            -X POST \
+            "${GOOGLE_CALENDAR_WEBHOOK_URL}" \
+            --data "$PAYLOAD"
+
+          echo "Google Calendar event created."
