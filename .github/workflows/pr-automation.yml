@@ -23,6 +23,8 @@ jobs:
 
   jira:
     runs-on: ubuntu-latest
+    outputs:
+      issue_key: ${{ steps.jira_task.outputs.issue_key }}
 
     steps:
       - name: Calculate 5-day deadline
@@ -35,6 +37,7 @@ jobs:
           echo "Jira deadline: ${DUE_DATE}"
 
       - name: Create or update Jira task
+        id: jira_task
         env:
           JIRA_BASE_URL: ${{ secrets.JIRA_BASE_URL }}
           JIRA_EMAIL: ${{ secrets.JIRA_EMAIL }}
@@ -44,28 +47,52 @@ jobs:
           PR_URL: ${{ github.event.pull_request.html_url }}
           PR_AUTHOR: ${{ github.event.pull_request.user.login }}
           REPOSITORY: ${{ github.repository }}
+          PR_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
           DUE_DATE: ${{ steps.deadline.outputs.due_date }}
+          PR_ACTION: ${{ github.event.action }}
         run: |
           set -euo pipefail
 
           LABEL="github-pr-${PR_NUMBER}"
+          ISSUE_KEY=""
 
           echo "Checking Jira for an existing task..."
-          SEARCH=$(curl -fsS --get \
-            -u "${JIRA_EMAIL}:${JIRA_API_TOKEN}" \
-            -H "Accept: application/json" \
-            --data-urlencode "jql=project = SCRUM AND labels = \"${LABEL}\"" \
-            --data-urlencode "maxResults=1" \
-            "${JIRA_BASE_URL}/rest/api/3/search/jql")
 
-          ISSUE_KEY=$(echo "$SEARCH" | jq -r '.issues[0].key // empty')
+          # Jira search can take a few seconds to index a newly-created issue.
+          # Retry before deciding that the task does not exist.
+          for attempt in 1 2 3; do
+            SEARCH=$(curl -fsS --get \
+              -u "${JIRA_EMAIL}:${JIRA_API_TOKEN}" \
+              -H "Accept: application/json" \
+              --data-urlencode "jql=project = SCRUM AND labels = \"${LABEL}\" ORDER BY created DESC" \
+              --data-urlencode "maxResults=1" \
+              --data-urlencode "fields=key" \
+              "${JIRA_BASE_URL}/rest/api/3/search/jql")
+
+            ISSUE_KEY=$(echo "$SEARCH" | jq -r '.issues[0].key // empty')
+
+            if [ -n "$ISSUE_KEY" ]; then
+              break
+            fi
+
+            if [ "$attempt" -lt 3 ]; then
+              echo "No Jira task found yet. Waiting for Jira indexing (attempt ${attempt}/3)..."
+              sleep 5
+            fi
+          done
 
           if [ -z "$ISSUE_KEY" ]; then
-            echo "No Jira task found. Creating one..."
+            if [ "$PR_ACTION" = "synchronize" ]; then
+              echo "ERROR: No existing Jira task found for ${LABEL}."
+              echo "Refusing to create a duplicate task for an existing PR."
+              exit 1
+            fi
+
+            echo "No Jira task found for a newly opened PR. Creating one..."
 
             PAYLOAD=$(jq -n \
               --arg summary "$PR_TITLE" \
-              --arg description "GitHub PR #${PR_NUMBER}: ${PR_TITLE}\nRepository: ${REPOSITORY}\nAuthor: ${PR_AUTHOR}\nPR URL: ${PR_URL}" \
+              --arg description "GitHub PR #${PR_NUMBER}: ${PR_TITLE}\nRepository: ${REPOSITORY}\nAuthor: ${PR_AUTHOR}\nPR URL: ${PR_URL}\nLatest commit: ${PR_HEAD_SHA}" \
               --arg due "$DUE_DATE" \
               --arg label "$LABEL" \
               '{
@@ -97,9 +124,24 @@ jobs:
             ISSUE_KEY=$(echo "$RESPONSE" | jq -r '.key')
             echo "Created Jira task: ${ISSUE_KEY}"
           else
-            echo "Jira task ${ISSUE_KEY} already exists. Updating deadline..."
+            echo "Jira task ${ISSUE_KEY} already exists. Updating Jira task details..."
 
-            PAYLOAD=$(jq -n --arg due "$DUE_DATE" '{fields: {duedate: $due}}')
+            PAYLOAD=$(jq -n \
+              --arg summary "$PR_TITLE" \
+              --arg description "GitHub PR #${PR_NUMBER}: ${PR_TITLE}\nRepository: ${REPOSITORY}\nAuthor: ${PR_AUTHOR}\nPR URL: ${PR_URL}\nLatest commit: ${PR_HEAD_SHA}" \
+              --arg due "$DUE_DATE" \
+              '{fields: {
+                summary: $summary,
+                description: {
+                  type: "doc",
+                  version: 1,
+                  content: [{
+                    type: "paragraph",
+                    content: [{type: "text", text: $description}]
+                  }]
+                },
+                duedate: $due
+              }}')
 
             curl -fsS \
               -u "${JIRA_EMAIL}:${JIRA_API_TOKEN}" \
@@ -112,4 +154,94 @@ jobs:
             echo "Updated Jira task: ${ISSUE_KEY}"
           fi
 
-          echo "Jira task: ${JIRA_BASE_URL}/browse/${ISSUE_KEY}"
+          echo "issue_key=${ISSUE_KEY}" >> "$GITHUB_OUTPUT"
+          echo "Jira task key: ${ISSUE_KEY}"
+
+  calendar:
+    needs: jira
+    if: false
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Calculate 5-day calendar deadline
+        id: deadline
+        env:
+          PR_CREATED_AT: ${{ github.event.pull_request.created_at }}
+        run: |
+          DUE_AT=$(date -u -d "${PR_CREATED_AT} + 5 days" '+%Y-%m-%dT%H:%M:%SZ')
+          echo "due_at=${DUE_AT}" >> "$GITHUB_OUTPUT"
+          echo "Calendar deadline: ${DUE_AT}"
+
+      - name: Create Google Calendar event
+        env:
+          GOOGLE_CALENDAR_WEBHOOK_URL: ${{ secrets.GOOGLE_CALENDAR_WEBHOOK_URL }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          PR_TITLE: ${{ github.event.pull_request.title }}
+          PR_URL: ${{ github.event.pull_request.html_url }}
+          REPOSITORY: ${{ github.repository }}
+          DUE_AT: ${{ steps.deadline.outputs.due_at }}
+          JIRA_BASE_URL: ${{ secrets.JIRA_BASE_URL }}
+          JIRA_KEY: ${{ needs.jira.outputs.issue_key }}
+        run: |
+          set -euo pipefail
+
+          JIRA_URL="${JIRA_BASE_URL}/browse/${JIRA_KEY}"
+
+          PAYLOAD=$(jq -n \
+            --arg title "PR #${PR_NUMBER} – ${PR_TITLE}" \
+            --arg deadline "$DUE_AT" \
+            --arg pr_url "$PR_URL" \
+            --arg jira_url "$JIRA_URL" \
+            --arg repository "$REPOSITORY" \
+            '{
+              title: $title,
+              deadline: $deadline,
+              pr_url: $pr_url,
+              jira_url: $jira_url,
+              repository: $repository
+            }')
+
+          echo "Creating Google Calendar event..."
+          RESPONSE=$(curl -fsS \
+            -X POST \
+            -H "Content-Type: application/json" \
+            --data "$PAYLOAD" \
+            "$GOOGLE_CALENDAR_WEBHOOK_URL")
+
+          echo "Calendar response: $RESPONSE"
+          echo "Google Calendar event created successfully."
+
+  slack:
+    needs: jira
+    if: github.event.action == 'synchronize'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Send Slack notification
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          PR_TITLE: ${{ github.event.pull_request.title }}
+          PR_URL: ${{ github.event.pull_request.html_url }}
+          PR_AUTHOR: ${{ github.event.pull_request.user.login }}
+          REPOSITORY: ${{ github.repository }}
+          JIRA_BASE_URL: ${{ secrets.JIRA_BASE_URL }}
+          JIRA_KEY: ${{ needs.jira.outputs.issue_key }}
+        run: |
+          set -euo pipefail
+
+          JIRA_URL="${JIRA_BASE_URL}/browse/${JIRA_KEY}"
+
+          PAYLOAD=$(jq -n \
+            --arg text "🚀 PR AUTOMATION UPDATE\n\n📦 Repository: ${REPOSITORY}\n🔀 Pull Request: #${PR_NUMBER} — ${PR_TITLE}\n👤 Author: ${PR_AUTHOR}\n\n✅ Jira Task: ${JIRA_KEY}\n🔗 Jira: ${JIRA_URL}\n\n📌 Status: PR updated → Jira task processed → Slack notified" \
+            '{text: $text}')
+
+          echo "Sending notification to Slack..."
+
+          curl -fsS \
+            -X POST \
+            -H "Content-Type: application/json" \
+            --data "$PAYLOAD" \
+            "$SLACK_WEBHOOK_URL"
+
+          echo "Slack notification sent successfully."
